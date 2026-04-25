@@ -427,22 +427,10 @@ generate_sober_cursor_from_png() {
         temp_dst=$(mktemp /tmp/sober_cursor_XXXX.png)
 
 log_info "Creating ${label} for Sober..."
-        local actual_size=$(( cursor_size + 2 ))
+        local actual_size=$(( cursor_size ))
         local offset_x offset_y
-        case "$label" in
-            ArrowCursor)
-                offset_x=$(( 32 - 4 ))
-                offset_y=$(( 32 - 1 ))
-                ;;
-            ArrowFarCursor)
-                offset_x=$(( 32 - 4 ))
-                offset_y=$(( 32 - 1 ))
-                ;;
-            IBeamCursor|MouseLockedCursor)
-                offset_x=$(( 32 - 8 ))
-                offset_y=$(( 32 - 8 ))
-                ;;
-        esac
+        offset_x=$(( (64 - actual_size) / 2 ))
+        offset_y=$(( (64 - actual_size) / 2 ))
         magick "$png_src" -resize ${actual_size}x${actual_size} \
             -background none -gravity NorthWest -splice "${offset_x}x${offset_y}" \
             -background none -extent 64x64 "$temp_dst"
@@ -538,7 +526,11 @@ main() {
     update_gtk_settings "$theme" "$size" "$HOME/.config/gtk-4.0"
 
     if [[ -d "$SOBER_CURSOR_DIR" ]] && prompt_yes_no "Apply to Sober app?"; then
-        apply_to_sober "$theme" "$size"
+        echo ""
+        echo -n "Sober cursor size [${size}]: "
+        read -r sober_size
+        sober_size=${sober_size:-$size}
+        apply_to_sober "$theme" "$sober_size"
     else
         log_info "Skipped Sober update."
     fi
