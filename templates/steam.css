@@ -1,0 +1,30 @@
+/*
+* GTK 4 Colors
+* Converted from Matugen template
+*/
+
+:root {
+    --adw-accent-rgb: {{ primary.rgb }};
+    --adw-accent-bg-rgb: {{ primary.rgb }};
+    --adw-accent-fg-rgb: {{ onPrimary.rgb }};
+
+    --adw-window-bg-rgb: {{ background.rgb }};
+    --adw-window-fg-rgb: {{ onBackground.rgb }};
+
+    --adw-headerbar-bg-rgb: {{ surfaceDim.rgb }};
+    --adw-headerbar-fg-rgb: {{ onSurface.rgb }};
+
+    --adw-popover-bg-rgb: {{ surfaceDim.rgb }};
+    --adw-popover-fg-rgb: {{ onSurface.rgb }};
+
+    --adw-view-bg-rgb: {{ surface.rgb }};
+    --adw-view-fg-rgb: {{ onSurface.rgb }};
+
+    --adw-card-bg-rgb: {{ surface.rgb }};
+    --adw-card-fg-rgb: {{ onSurface.rgb }};
+
+    --adw-sidebar-bg-rgb: {{ background.rgb }};
+    --adw-sidebar-fg-rgb: {{ onBackground.rgb }};
+    --adw-sidebar-border-rgb: {{ background.rgb }};
+    --adw-sidebar-backdrop-rgb: {{ background.rgb }};
+}
