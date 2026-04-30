@@ -24,6 +24,7 @@ The `templates/` directory contains scripted templates used by the Caelestia CLI
 
 - `fastfetch/` - fastfetch config template
 - `steam.css` - Steam theme CSS
+- `discord-material.css` - Material Discord theme template
 
 ## PostHook System
 
@@ -47,5 +48,11 @@ Configure the postHook path in `~/.config/caelestia/cli.json`:
 |------|---------|
 | `steam.sh` | Applies theme to Steam via AdwSteamGtk |
 | `fastfetch.sh` | Generates themed fastfetch images |
+| `discord-material.sh` | Converts Material Discord theme to HSL (see note below) |
 | [caelestia-websites](https://github.com/dim-ghub/caelestia-websites) | Updates Firefox userChrome colors |
 | [Minecraft-Caelestia](https://github.com/dim-ghub/Minecraft-Caelestia) | Recolors Minecraft resource packs |
+
+> **Discord Note:** If you use a client other than Equicord, edit `~/.local/bin/posthook.sh` and change the `ln` command path to match your client's themes directory:
+> - BetterDiscord: `~/.config/BetterDiscord/themes/`
+> - Vencord: `~/.config/Vencord/themes/`
+> - Stella: `~/.config/Stella/themes/`
