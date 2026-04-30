@@ -48,7 +48,7 @@ Configure the postHook path in `~/.config/caelestia/cli.json`:
 |------|---------|
 | `steam.sh` | Applies theme to Steam via AdwSteamGtk |
 | `fastfetch.sh` | Generates themed fastfetch images |
-| `discord-material.sh` | Converts Material Discord theme to HSL (see note below) |
+| `discord-material.sh` | Converts Material Discord theme RGB to HSL (see note below) |
 | [caelestia-websites](https://github.com/dim-ghub/caelestia-websites) | Updates Firefox userChrome colors |
 | [Minecraft-Caelestia](https://github.com/dim-ghub/Minecraft-Caelestia) | Recolors Minecraft resource packs |
 
