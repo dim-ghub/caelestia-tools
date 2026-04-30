@@ -22,4 +22,4 @@ echo $WALLPAPER_PATH
 #   - Vencord: ~/.config/Vencord/themes/
 #   - Stella: ~/.config/Stella/themes/
 #   - etc.
-ln -nsf ~/.local/state/caelestia/theme/discord-material.css ~/.config/Equicord/themes/discord-material.css
+ln -nsf ~/.local/state/caelestia/theme/discord-material.theme.css ~/.config/Equicord/themes/discord-material.theme.css

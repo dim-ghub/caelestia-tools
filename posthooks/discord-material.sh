@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-FILE="$HOME/.local/state/caelestia/theme/discord-material.css"
+FILE="$HOME/.local/state/caelestia/theme/discord-material.theme.css"
 
 if [ ! -f "$FILE" ]; then
     echo "Error: File not found: $FILE"

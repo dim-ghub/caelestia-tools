@@ -24,7 +24,7 @@ The `templates/` directory contains scripted templates used by the Caelestia CLI
 
 - `fastfetch/` - fastfetch config template
 - `steam.css` - Steam theme CSS
-- `discord-material.css` - Material Discord theme template
+- `discord-material.theme.css` - Material Discord theme template
 
 ## PostHook System
 
