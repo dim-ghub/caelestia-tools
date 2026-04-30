@@ -20,7 +20,18 @@ Interactive cursor theme installer that:
 
 ## Templates
 
-The `templates/` directory contains scripted templates used by the Caelestia CLI for generating theme files:
+The `templates/` directory contains scripted templates used by the Caelestia CLI for generating theme files.
+
+### Setup
+
+Copy the templates to `~/.config/caelestia/templates/`:
+
+```bash
+mkdir -p ~/.config/caelestia/templates
+cp -r templates/* ~/.config/caelestia/templates/
+```
+
+### Available Templates
 
 - `fastfetch/` - fastfetch config template
 - `steam.css` - Steam theme CSS
