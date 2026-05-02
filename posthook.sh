@@ -23,3 +23,6 @@ echo $WALLPAPER_PATH
 #   - Stella: ~/.config/Stella/themes/
 #   - etc.
 ln -nsf ~/.local/state/caelestia/theme/discord-material.theme.css ~/.config/Equicord/themes/discord-material.theme.css
+
+# Beeper
+bash -c 'hyprctl dispatch sendshortcut "CTRL SHIFT ALT, R, class:^(Beeper)$"'
