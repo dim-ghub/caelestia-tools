@@ -36,6 +36,7 @@ cp -r templates/* ~/.config/caelestia/templates/
 - `fastfetch/` - fastfetch config template
 - `steam.css` - Steam theme CSS
 - `discord-material.theme.css` - Material Discord theme template
+- `beeper.css` - Beeper.app custom CSS theme
 
 ## PostHook System
 
@@ -60,6 +61,7 @@ Configure the postHook path in `~/.config/caelestia/cli.json`:
 | `steam.sh` | Applies theme to Steam via AdwSteamGtk |
 | `fastfetch.sh` | Generates themed fastfetch images |
 | `discord-material.sh` | Converts Material Discord theme RGB to HSL (see note below) |
+| `beeper.css` | Beeper.app custom CSS (requires manual reload via command bar) |
 | [caelestia-websites](https://github.com/dim-ghub/caelestia-websites) | Updates Firefox userChrome colors |
 | [Minecraft-Caelestia](https://github.com/dim-ghub/Minecraft-Caelestia) | Recolors Minecraft resource packs |
 
@@ -67,3 +69,5 @@ Configure the postHook path in `~/.config/caelestia/cli.json`:
 > - BetterDiscord: `~/.config/BetterDiscord/themes/`
 > - Vencord: `~/.config/Vencord/themes/`
 > - Stella: `~/.config/Stella/themes/`
+
+> **Beeper Note:** After installing the template to `~/.config/Beeper/custom.css`, type "Reload custom CSS" in the command bar to apply changes. The posthook sends `Ctrl+Shift+Alt+R` to refresh.
