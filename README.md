@@ -2,6 +2,18 @@
 
 Tools and scripts for the [Caelestia](https://github.com/AryanTheJavaStrider/Caelestia) Hyprland dotfiles.
 
+## Installer
+
+Run the interactive installer to set up all components:
+
+```bash
+./install.sh
+```
+
+The installer allows you to select which components to install:
+- PostHook scripts (with associated templates auto-selected)
+- Cursor Switcher tool
+
 ## Tools
 
 ### Cursor Switcher
