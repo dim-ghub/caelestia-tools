@@ -16,6 +16,24 @@ The installer allows you to select which components to install:
 
 ## Tools
 
+### Catppuccin to Caelestia Converter
+
+Converts Catppuccin color palettes to matugen theme template variables for Caelestia.
+
+```bash
+./tools/catppuccin-to-caelestia.py --help
+```
+
+Generate templates for all Catppuccin flavors:
+```bash
+./tools/catppuccin-to-caelestia.py --all --output ./output
+```
+
+Convert an existing theme file:
+```bash
+./tools/catppuccin-to-caelestia.py --convert theme.css --flavor mocha
+```
+
 ### Cursor Switcher
 
 Interactive cursor theme installer that:

@@ -70,6 +70,7 @@ show_selection_menu() {
 
     echo ""
     echo "  c) Toggle Cursor Switcher"
+    echo "  t) Toggle Catppuccin Converter"
     echo "  a) Install all selected"
     echo "  q) Quit"
     echo ""
@@ -177,6 +178,17 @@ install_cursor_switcher() {
     fi
 }
 
+install_catppuccin_converter() {
+    info "Installing Catppuccin Converter..."
+    create_dir "${INSTALL_DIR}"
+
+    if [[ -f "${PROJECT_DIR}/tools/catppuccin-to-caelestia.py" ]]; then
+        cp "${PROJECT_DIR}/tools/catppuccin-to-caelestia.py" "${INSTALL_DIR}/caelestia-catppuccin-convert"
+        chmod +x "${INSTALL_DIR}/caelestia-catppuccin-convert"
+        success "Installed caelestia-catppuccin-convert"
+    fi
+}
+
 install_templates() {
     info "Installing Templates..."
 
@@ -235,6 +247,7 @@ end'
 
 main() {
     local install_cursor="no"
+    local install_catppuccin="no"
 
     if [[ ! -d "${PROJECT_DIR}/posthooks" ]]; then
         die "posthooks directory not found. Are you running from the correct location?"
@@ -250,11 +263,18 @@ main() {
 
         case "$choice" in
             q|Q) exit 0 ;;
-            c|C) 
+            c|C)
                 if [[ "$install_cursor" == "yes" ]]; then
                     install_cursor="no"
                 else
                     install_cursor="yes"
+                fi
+                ;;
+            t|T)
+                if [[ "$install_catppuccin" == "yes" ]]; then
+                    install_catppuccin="no"
+                else
+                    install_catppuccin="yes"
                 fi
                 ;;
             a|A)
@@ -262,6 +282,10 @@ main() {
                 echo ""
                 if [[ "$install_cursor" == "yes" ]]; then
                     install_cursor_switcher
+                fi
+                echo ""
+                if [[ "$install_catppuccin" == "yes" ]]; then
+                    install_catppuccin_converter
                 fi
                 echo ""
                 install_templates
