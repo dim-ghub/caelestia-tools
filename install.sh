@@ -25,6 +25,7 @@ declare -A HOOK_DESCRIPTIONS=(
     [minecraft]="Recolors Minecraft resource packs"
     [discord-material]="Converts Material Discord theme RGB to HSL"
     [beeper]="Reload Beeper custom CSS"
+    [flatremix]="Sets icon theme based on wallpaper colors"
 )
 
 info()    { printf "[INFO] %s\n" "$*"; }
@@ -103,6 +104,35 @@ install_posthook() {
     create_dir "${INSTALL_DIR}"
     create_dir "${INSTALL_DIR}/posthooks"
     create_dir "${CONFIG_DIR}"
+
+    if [[ " ${SELECTED_HOOKS[*]} " == *" flatremix "* ]]; then
+        local aur_helper=""
+        if command -v paru &> /dev/null; then
+            aur_helper="paru"
+        elif command -v yay &> /dev/null; then
+            aur_helper="yay"
+        fi
+
+        if [ -n "$aur_helper" ]; then
+            if pacman -Qs "flat-remix" > /dev/null 2>&1 || [ -d "/usr/share/icons/Flat-Remix" ]; then
+                info "flat-remix already installed, skipping"
+            else
+                info "Installing flat-remix..."
+                $aur_helper -S flat-remix --noconfirm
+            fi
+
+            info "Removing papirus-folders..."
+            $aur_helper -Rns papirus-folders --noconfirm 2>/dev/null || true
+
+            info "Running flatremix.sh to set icon theme..."
+            bash "${INSTALL_DIR}/posthooks/flatremix.sh"
+            caelestia shell -k
+            sleep 0.5
+            caelestia shell -d & disown
+        else
+            warn "Neither paru nor yay found. Please install flat-remix manually."
+        fi
+    fi
 
     echo ""
     info "Generating posthook.sh with enabled hooks..."
