@@ -211,6 +211,28 @@ setup_arrays() {
     done < <(find "${PROJECT_DIR}/templates" -maxdepth 1 \( -type f -o -type d \) | tail -n +2 | sort)
 }
 
+setup_fish_path() {
+    local fish_config="${HOME}/.config/caelestia/user-config.fish"
+    create_dir "${HOME}/.config/caelestia"
+
+    local fish_entry='# caelestia-tools: add ~/.local/bin to PATH
+if not contains ~/.local/bin $PATH
+    set -gx PATH $PATH ~/.local/bin
+end'
+
+    if [[ -f "$fish_config" ]]; then
+        if ! grep -q 'caelestia-tools.*add.*local/bin' "$fish_config" 2>/dev/null; then
+            echo "" >> "$fish_config"
+            echo "$fish_entry" >> "$fish_config"
+            info "Updated $fish_config"
+        fi
+    else
+        echo "$fish_entry" > "$fish_config"
+        info "Created $fish_config"
+    fi
+    success "Added ~/.local/bin to fish PATH via $fish_config"
+}
+
 main() {
     local install_cursor="no"
 
@@ -244,6 +266,8 @@ main() {
                 echo ""
                 install_templates
                 echo ""
+                setup_fish_path
+                echo ""
                 success "Installation complete!"
                 break
                 ;;
@@ -257,9 +281,6 @@ main() {
                 ;;
         esac
     done
-
-    echo ""
-    info "Make sure ~/.local/bin is in your PATH."
 }
 
 main "$@"
