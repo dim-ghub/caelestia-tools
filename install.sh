@@ -105,6 +105,14 @@ install_posthook() {
     create_dir "${INSTALL_DIR}/posthooks"
     create_dir "${CONFIG_DIR}"
 
+    for hook in "${PROJECT_DIR}/posthooks"/*.sh; do
+        if [[ -f "$hook" ]]; then
+            cp "$hook" "${INSTALL_DIR}/posthooks/"
+            chmod +x "${INSTALL_DIR}/posthooks/$(basename "$hook")"
+        fi
+    done
+    success "Installed posthook scripts"
+
     if [[ " ${SELECTED_HOOKS[*]} " == *" flatremix "* ]]; then
         local aur_helper=""
         if command -v paru &> /dev/null; then
