@@ -113,6 +113,26 @@ install_posthook() {
     done
     success "Installed posthook scripts"
 
+    if [[ " ${SELECTED_HOOKS[*]} " == *" steam "* ]]; then
+        local aur_helper=""
+        if command -v paru &> /dev/null; then
+            aur_helper="paru"
+        elif command -v yay &> /dev/null; then
+            aur_helper="yay"
+        fi
+
+        if [ -n "$aur_helper" ]; then
+            if pacman -Qs "adwsteamgtk" > /dev/null 2>&1 || [ -f "/usr/bin/adwaita-steam-gtk" ]; then
+                info "adwsteamgtk already installed, skipping"
+            else
+                info "Installing adwsteamgtk..."
+                $aur_helper -S adwsteamgtk --noconfirm
+            fi
+        else
+            warn "Neither paru nor yay found. Please install adwsteamgtk manually."
+        fi
+    fi
+
     if [[ " ${SELECTED_HOOKS[*]} " == *" flatremix "* ]]; then
         local aur_helper=""
         if command -v paru &> /dev/null; then
@@ -144,8 +164,17 @@ install_posthook() {
 
     echo ""
     info "Generating posthook.sh with enabled hooks..."
+    local existing_posthook=""
+    if [[ -f "${CONFIG_DIR}/cli.json" ]]; then
+        existing_posthook=$(grep -o '"postHook": "[^"]*"' "${CONFIG_DIR}/cli.json" 2>/dev/null | head -1 | sed 's/"postHook": "//;s/"$//')
+    fi
     {
         echo '#!/usr/bin/env bash'
+        if [[ -n "$existing_posthook" && "$existing_posthook" != "~/.local/bin/posthook.sh" ]]; then
+            echo "# Existing postHook found, prepending..."
+            echo "$existing_posthook &"
+            echo ""
+        fi
         echo 'echo $WALLPAPER_PATH'
         echo ""
         for hook in "${HOOKS_SORTED[@]}"; do
@@ -184,12 +213,12 @@ install_posthook() {
         if grep -q '"postHook"' "${CONFIG_DIR}/cli.json" 2>/dev/null; then
             sed -i 's|"postHook": "[^"]*"|"postHook": "~/.local/bin/posthook.sh"|' "${CONFIG_DIR}/cli.json"
         else
-            sed -i 's|"wallpaper": {|&\n        "postHook": "~/.local/bin/posthook.sh",|' "${CONFIG_DIR}/cli.json"
+            sed -i 's|\("iconThemeDark": "\)\([^"]*\)\(",\?\)|\1\2\3,\n    "postHook": "~/.local/bin/posthook.sh"|' "${CONFIG_DIR}/cli.json"
         fi
     else
         cat > "${CONFIG_DIR}/cli.json" << 'EOF'
 {
-    "wallpaper": {
+    "theme": {
         "postHook": "~/.local/bin/posthook.sh"
     }
 }
