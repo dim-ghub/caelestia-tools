@@ -45,7 +45,7 @@ prompt_yes_no() {
     local response
     echo ""
     echo -n "${YELLOW}${prompt} [Y/n]: ${RESET}"
-    read -r response
+    read -r response < /dev/tty
     case "$response" in
         [Nn]) return 1 ;;
         *) return 0 ;;
@@ -302,7 +302,7 @@ update_sddm() {
 
     if [[ -f "${SDDM_CONF_DIR}/caelestia.conf" ]]; then
         local current_size
-        current_size=$(grep -i "CursorSize" "${SDDM_CONF_DIR}/caelestia.conf" 2>/dev/null | head -1)
+        current_size=$(sudo grep -i "CursorSize" "${SDDM_CONF_DIR}/caelestia.conf" 2>/dev/null | head -1 || true)
         if [[ -n "$current_size" ]]; then
             log_info "Found existing SDDM config: ${current_size}"
         fi
@@ -415,12 +415,12 @@ generate_sober_cursor_from_png() {
 
         if [[ ! -f "$png_src" ]]; then
             log_warn "Source PNG not found. Skipping ${label}."
-            return 1
+            return 0
         fi
 
         if ! command -v magick &>/dev/null; then
             log_warn "ImageMagick not found, skipping ${label}."
-            return 1
+            return 0
         fi
 
         local temp_dst
@@ -525,10 +525,14 @@ main() {
     update_gtk_settings "$theme" "$size" "$HOME/.config/gtk-3.0"
     update_gtk_settings "$theme" "$size" "$HOME/.config/gtk-4.0"
 
-    if [[ -d "$SOBER_CURSOR_DIR" ]] && prompt_yes_no "Apply to Sober app?"; then
+    # Check the base Sober directory instead of the deep cursor path
+    if [[ -d "$HOME/.var/app/org.vinegarhq.Sober" ]] && prompt_yes_no "Apply to Sober app?"; then
+        # Create the necessary overlay directories before applying
+        mkdir -p "$SOBER_CURSOR_DIR" "$SOBER_MOUSE_DIR"
+        
         echo ""
         echo -n "Sober cursor size [${size}]: "
-        read -r sober_size
+        read -r sober_size < /dev/tty
         sober_size=${sober_size:-$size}
         apply_to_sober "$theme" "$sober_size"
     else
