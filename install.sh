@@ -213,8 +213,14 @@ install_posthook() {
         if grep -q '"postHook"' "${CONFIG_DIR}/cli.json" 2>/dev/null; then
             sed -i 's|"postHook": "[^"]*"|"postHook": "~/.local/bin/posthook.sh"|g' "${CONFIG_DIR}/cli.json"
         else
-            sed -i 's|"wallpaper": {|&\n        "postHook": "~/.local/bin/posthook.sh",|' "${CONFIG_DIR}/cli.json"
-            sed -i 's|"theme": {|&\n        "postHook": "~/.local/bin/posthook.sh",|' "${CONFIG_DIR}/cli.json"
+            if grep -q '"wallpaper": {}' "${CONFIG_DIR}/cli.json" 2>/dev/null; then
+                sed -i 's|"wallpaper": {}|"wallpaper": {\n        "postHook": "~/.local/bin/posthook.sh"\n    }|' "${CONFIG_DIR}/cli.json"
+            elif grep -q '"wallpaper": {' "${CONFIG_DIR}/cli.json" 2>/dev/null; then
+                sed -i 's|"wallpaper": {|"wallpaper": {\n        "postHook": "~/.local/bin/posthook.sh",|' "${CONFIG_DIR}/cli.json"
+            fi
+            if grep -q '"theme": {' "${CONFIG_DIR}/cli.json" 2>/dev/null; then
+                sed -i 's|"theme": {|"theme": {\n        "postHook": "~/.local/bin/posthook.sh",|' "${CONFIG_DIR}/cli.json"
+            fi
         fi
     else
         cat > "${CONFIG_DIR}/cli.json" << 'EOF'
