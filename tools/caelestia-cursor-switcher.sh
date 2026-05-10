@@ -45,7 +45,7 @@ prompt_yes_no() {
     local response
     echo ""
     echo -n "${YELLOW}${prompt} [Y/n]: ${RESET}"
-    read -r response < /dev/tty
+    read -r response
     case "$response" in
         [Nn]) return 1 ;;
         *) return 0 ;;
@@ -509,6 +509,7 @@ main() {
         [[ -z "$size" ]] && exit 1
     fi
 
+    PS3=""
     log_info "Cursor setup: ${theme} @ ${size}px"
 
     if [[ ! -d "${SYSTEM_ICON_DIR}/${theme}" ]]; then
