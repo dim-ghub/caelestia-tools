@@ -28,12 +28,29 @@ declare -A HOOK_DESCRIPTIONS=(
     [flatremix]="Sets icon theme based on wallpaper colors"
 )
 
+declare -a SELECTED_TOOLS=()
+declare grim_ocr_langs="eng"
+declare install_grim_ocr="no"
+declare install_grim_search="no"
+
 info()    { printf "[INFO] %s\n" "$*"; }
 success() { printf "[OK] %s\n" "$*"; }
 warn()    { printf "[WARN] %s\n" "$*" >&2; }
 error()   { printf "[ERROR] %s\n" "$*" >&2; }
 
 die() { error "$*"; exit 1; }
+
+prompt_yes_no() {
+    local prompt="$1"
+    local response
+    echo ""
+    echo -n "${prompt} [Y/n]: "
+    read -r response
+    case "$response" in
+        [Nn]) return 1 ;;
+        *) return 0 ;;
+    esac
+}
 
 create_dir() {
     local dir="$1"
@@ -70,8 +87,10 @@ show_selection_menu() {
     done
 
     echo ""
-    echo "  c) Toggle Cursor Switcher"
-    echo "  t) Toggle Catppuccin Converter"
+    echo "  o) $([[ "$install_grim_ocr" == "yes" ]] && echo "[x]" || echo "[ ]") Grim OCR (langs: ${grim_ocr_langs})"
+    echo "  s) $([[ "$install_grim_search" == "yes" ]] && echo "[x]" || echo "[ ]") Grim Search"
+    echo "  c) $([[ "$install_cursor" == "yes" ]] && echo "[x]" || echo "[ ]") Cursor Switcher"
+    echo "  t) $([[ "$install_catppuccin" == "yes" ]] && echo "[x]" || echo "[ ]") Catppuccin Converter"
     echo "  a) Install all selected"
     echo "  q) Quit"
     echo ""
@@ -210,24 +229,30 @@ install_posthook() {
     success "Installed posthook scripts"
 
     if [[ -f "${CONFIG_DIR}/cli.json" ]]; then
+        info "Checking cli.json for postHook..."
+        info "postHook grep result: $(grep -q '"postHook"' "${CONFIG_DIR}/cli.json" 2>/dev/null && echo 'found' || echo 'not found')"
+        info "theme grep result: $(grep -q '"theme": {' "${CONFIG_DIR}/cli.json" 2>/dev/null && echo 'found' || echo 'not found')"
         if grep -q '"postHook"' "${CONFIG_DIR}/cli.json" 2>/dev/null; then
+            info "postHook found in cli.json, updating existing..."
             sed -i 's|"postHook": "[^"]*"|"postHook": "~/.local/bin/posthook.sh"|g' "${CONFIG_DIR}/cli.json"
         else
-            if grep -q '"wallpaper": {}' "${CONFIG_DIR}/cli.json" 2>/dev/null; then
-                sed -i 's|"wallpaper": {}|"wallpaper": {\n        "postHook": "~/.local/bin/posthook.sh"\n    }|' "${CONFIG_DIR}/cli.json"
-            elif grep -q '"wallpaper": {' "${CONFIG_DIR}/cli.json" 2>/dev/null; then
-                sed -i 's|"wallpaper": {|"wallpaper": {\n        "postHook": "~/.local/bin/posthook.sh",|' "${CONFIG_DIR}/cli.json"
-            fi
-            if grep -q '"theme": {' "${CONFIG_DIR}/cli.json" 2>/dev/null; then
-                sed -i 's|"theme": {|"theme": {\n        "postHook": "~/.local/bin/posthook.sh",|' "${CONFIG_DIR}/cli.json"
-            fi
+            info "No postHook found in cli.json"
+        fi
+        info "Checking if theme section exists..."
+        if grep -q '"theme": {' "${CONFIG_DIR}/cli.json" 2>/dev/null; then
+            info "theme section found, adding postHook..."
+            sed -i 's|"theme": {|"theme": {\n        "postHook": "~/.local/bin/posthook.sh",|' "${CONFIG_DIR}/cli.json"
+        else
+            info "theme section NOT found"
+        fi
+        if command -v jq &> /dev/null; then
+            local tmp_file
+            tmp_file=$(mktemp)
+            jq '.' "${CONFIG_DIR}/cli.json" > "$tmp_file" && mv "$tmp_file" "${CONFIG_DIR}/cli.json"
         fi
     else
         cat > "${CONFIG_DIR}/cli.json" << 'EOF'
 {
-    "wallpaper": {
-        "postHook": "~/.local/bin/posthook.sh"
-    },
     "theme": {
         "postHook": "~/.local/bin/posthook.sh"
     }
@@ -322,6 +347,76 @@ end'
     success "Added ~/.local/bin to fish PATH via $fish_config"
 }
 
+install_deps() {
+    local pkg="$1"
+    local aur_helper=""
+    if command -v paru &> /dev/null; then
+        aur_helper="paru"
+    elif command -v yay &> /dev/null; then
+        aur_helper="yay"
+    fi
+
+    if [ -z "$aur_helper" ]; then
+        warn "Neither paru nor yay found. Please install $pkg manually."
+        return 1
+    fi
+
+    if pacman -Qs "$pkg" > /dev/null 2>&1; then
+        return 0
+    fi
+    $aur_helper -S "$pkg" --noconfirm
+}
+
+install_grim_ocr() {
+    info "Installing Grim OCR..."
+    create_dir "${INSTALL_DIR}"
+
+    local deps=(grim slurp tesseract wl-clipboard)
+
+    for dep in "${deps[@]}"; do
+        install_deps "$dep"
+    done
+
+    install_deps "tesseract-data-eng"
+    if [[ "$grim_ocr_langs" != "eng" ]]; then
+        IFS='+' read -ra langs <<< "$grim_ocr_langs"
+        for lang in "${langs[@]}"; do
+            [[ "$lang" == "eng" ]] && continue
+            install_deps "tesseract-data-${lang}"
+        done
+    fi
+
+    if [[ -f "${PROJECT_DIR}/tools/grim-ocr" ]]; then
+        cp "${PROJECT_DIR}/tools/grim-ocr" "${INSTALL_DIR}/grim-ocr"
+        chmod +x "${INSTALL_DIR}/grim-ocr"
+        success "Installed grim-ocr"
+    fi
+}
+
+install_grim_search() {
+    info "Installing Grim Search..."
+    create_dir "${INSTALL_DIR}"
+
+    warn "Grim Search uploads screenshots to uguu.se (a 3rd party host)."
+    warn "Do NOT select anything sensitive or private."
+    echo ""
+    if prompt_yes_no "Continue with Grim Search installation?"; then
+        local deps=(grim slurp curl jq xdg-utils)
+        for dep in "${deps[@]}"; do
+            install_deps "$dep"
+        done
+
+        if [[ -f "${PROJECT_DIR}/tools/grim-search" ]]; then
+            cp "${PROJECT_DIR}/tools/grim-search" "${INSTALL_DIR}/grim-search"
+            chmod +x "${INSTALL_DIR}/grim-search"
+            success "Installed grim-search"
+        fi
+    else
+        info "Skipped Grim Search installation."
+        install_grim_search="no"
+    fi
+}
+
 main() {
     local install_cursor="no"
     local install_catppuccin="no"
@@ -340,6 +435,24 @@ main() {
 
         case "$choice" in
             q|Q) exit 0 ;;
+            o|O)
+                if [[ "$install_grim_ocr" == "yes" ]]; then
+                    install_grim_ocr="no"
+                else
+                    install_grim_ocr="yes"
+                    echo ""
+                    echo -n "Enter OCR languages (+ separated, e.g. eng+fra+deu) [eng]: "
+                    read -r langs
+                    grim_ocr_langs="${langs:-eng}"
+                fi
+                ;;
+            s|S)
+                if [[ "$install_grim_search" == "yes" ]]; then
+                    install_grim_search="no"
+                else
+                    install_grim_search="yes"
+                fi
+                ;;
             c|C)
                 if [[ "$install_cursor" == "yes" ]]; then
                     install_cursor="no"
@@ -363,6 +476,14 @@ main() {
                 echo ""
                 if [[ "$install_catppuccin" == "yes" ]]; then
                     install_catppuccin_converter
+                fi
+                echo ""
+                if [[ "$install_grim_ocr" == "yes" ]]; then
+                    install_grim_ocr
+                fi
+                echo ""
+                if [[ "$install_grim_search" == "yes" ]]; then
+                    install_grim_search
                 fi
                 echo ""
                 install_templates

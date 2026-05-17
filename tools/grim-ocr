@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+set -uo pipefail
+
+export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
+
+usage() {
+  echo "Usage: $(basename "$0") [options]" >&2
+  echo "Take a screenshot of a selected area and extract text via OCR." >&2
+  echo "" >&2
+  echo "Options:" >&2
+  echo "  -l, --lang LANG   OCR language(s) (default: eng)" >&2
+  echo "  -c, --copy        Copy extracted text to clipboard (default)" >&2
+  echo "  -n, --no-copy     Don't copy to clipboard" >&2
+  echo "  -p, --print       Print extracted text to stdout" >&2
+  echo "  -o, --output FILE Save screenshot to FILE" >&2
+  echo "  -h, --help        Show this help" >&2
+  exit 1
+}
+
+lang="eng"
+do_copy=true
+do_print=false
+output_file=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -l|--lang) lang="$2"; shift 2 ;;
+    -c|--copy) do_copy=true; shift ;;
+    -n|--no-copy) do_copy=false; shift ;;
+    -p|--print) do_print=true; shift ;;
+    -o|--output) output_file="$2"; shift 2 ;;
+    -h|--help) usage ;;
+    *) usage ;;
+  esac
+done
+
+for cmd in grim slurp tesseract wl-copy hyprctl python3; do
+  if ! command -v "$cmd" &>/dev/null; then
+    echo "Error: $cmd not found. Install it first." >&2
+    exit 1
+  fi
+done
+
+tmp_img=$(mktemp /tmp/grim-ocr-XXXXXX.png)
+trap 'rm -f "$tmp_img"' EXIT
+
+hints=$(hyprctl clients -j 2>/dev/null | python3 -c "
+import json, sys
+clients = json.load(sys.stdin)
+for c in clients:
+    wx, wy = c['at']
+    ww, wh = c['size']
+    print(f'{wx},{wy} {ww}x{wh}')
+")
+
+geom=$(slurp <<< "$hints" 2>/dev/null)
+[[ -z "$geom" ]] && exit 0
+
+read -r sx sy sw sh <<< "$(echo "$geom" | awk -F'[,x ]' '{print $1, $2, $3, $4}')"
+if (( sw * sh < 20 )); then
+  snapped=$(echo "$hints" | while IFS= read -r rect; do
+    [[ -z "$rect" ]] && continue
+    read -r rx ry rw rh <<< "$(echo "$rect" | awk -F'[,x ]' '{print $1, $2, $3, $4}')"
+    if (( sx >= rx && sx < rx + rw && sy >= ry && sy < ry + rh )); then
+      echo "$rect"
+      break
+    fi
+  done)
+  [[ -n "$snapped" ]] && geom="$snapped"
+fi
+
+grim -g "$geom" "$tmp_img" 2>/dev/null || { echo "Screenshot failed" >&2; exit 1; }
+
+[[ -n "$output_file" ]] && cp "$tmp_img" "$output_file"
+
+text=$(tesseract "$tmp_img" stdout -l "$lang" 2>/dev/null) || exit 1
+
+text="$(echo "$text" | sed '/^[[:space:]]*$/d')"
+
+[[ -z "$text" ]] && exit 0
+
+if $do_copy; then
+  echo "$text" | wl-copy
+fi
+
+if $do_print; then
+  echo "$text"
+fi

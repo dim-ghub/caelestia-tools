@@ -12,6 +12,8 @@ Run the interactive installer to set up all components:
 
 The installer allows you to select which components to install:
 - PostHook scripts (with associated templates auto-selected)
+- Grim OCR - screenshot OCR tool (with language selection)
+- Grim Search - screenshot reverse image search
 - Cursor Switcher tool
 
 ## Tools
@@ -47,6 +49,31 @@ Interactive cursor theme installer that:
 ```bash
 ./caelestia-cursor-switcher.sh [theme_name] [size]
 ```
+
+### Grim OCR
+
+Screenshot a selected area and extract text via OCR using Tesseract.
+
+```bash
+grim-ocr [options]
+```
+
+Options:
+- `-l, --lang LANG` - OCR language(s) (default: eng, e.g. `eng+fra+deu`)
+- `-c, --copy` - Copy extracted text to clipboard (default)
+- `-n, --no-copy` - Don't copy to clipboard
+- `-p, --print` - Print extracted text to stdout
+- `-o, --output FILE` - Save screenshot to FILE
+
+### Grim Search
+
+Screenshot a region or window and search Google by image (reverse image search).
+
+```bash
+grim-search
+```
+
+> **Warning:** Grim Search uploads screenshots to [uguu.se](https://uguu.se), a 3rd party file hosting service. Do NOT select anything sensitive or private when using this tool.
 
 ## Templates
 
